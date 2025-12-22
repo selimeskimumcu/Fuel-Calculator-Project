@@ -1,10 +1,25 @@
 #kod tekrarını engelleyecek
 import unicodedata
+import re
 
-def normalize_text(text: str) -> str:
+def normalize_text(text: str):
     if not text:
         return ""
-    normalized = unicodedata.normalize("NFKC", text)
-    cleaned = ' '.join(c for c in normalized if not unicodedata.combining(c))
 
-    return cleaned.lower().strip()
+    text = text.lower().strip()
+
+
+    text = (
+        text.replace("ı", "i").replace("ğ", "g")
+            .replace("ü", "u").replace("ş", "s")
+            .replace("ö", "o").replace("ç", "c")
+    )
+
+
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(c for c in text if not unicodedata.combining(c))
+
+
+    text = re.sub(r"\s+", " ", text)
+
+    return text
