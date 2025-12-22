@@ -1,0 +1,34 @@
+{
+    "start_address": "Sar\u0131yer Cumhuriyet mahallesi \u0130stanbul",
+    "end_address": "\u00dcmraniye Tantavi mahallesi \u0130stanbul",
+    "start_coord": [
+        91.238238,
+        25.114576
+    ],
+    "end_coord": [
+        91.238238,
+        25.114576
+    ],
+    "distance": 0.0,
+    "duration": 0.0,
+    "geometry": [
+        [
+            91.238238,
+            25.114576
+        ]
+    ],
+    "legs": [
+        {
+            "from": [
+                91.238238,
+                25.114576
+            ],
+            "to": [
+                91.238238,
+                25.114576
+            ],
+            "distance": 0.0,
+            "duration": 0.0
+        }
+    ]
+}
