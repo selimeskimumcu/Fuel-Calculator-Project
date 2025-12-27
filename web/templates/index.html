@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Fuel Calculator</title>
+
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Fuel Calculator</h1>
+      <p>Haritadan başlangıç ve varış seç, aracı seç, maliyeti hesapla.</p>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Harita</h2>
+        <div id="map"></div>
+        <div class="row">
+          <button id="btnClear">Seçimleri Temizle</button>
+          <button id="btnRoute">Rota Hesapla</button>
+        </div>
+        <div id="routeInfo" class="muted"></div>
+      </section>
+
+      <section class="card">
+        <h2>Araç ve Yakıt</h2>
+
+        <label>Marka (MAKE)</label>
+        <input id="make" placeholder="ACURA" />
+
+        <label>Model (MODEL)</label>
+        <input id="model" placeholder="1.6EL" />
+
+        <label>Yıl (YEAR)</label>
+        <input id="year" type="number" placeholder="2000" />
+
+        <label>Yakıt Türü</label>
+        <select id="fuelType">
+          <option value="benzin">Benzin</option>
+          <option value="mazot">Mazot</option>
+          <option value="lpg">LPG</option>
+        </select>
+
+        <div class="row">
+          <button id="btnCalc" class="primary">Hesapla</button>
+        </div>
+
+        <div id="result" class="result"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
