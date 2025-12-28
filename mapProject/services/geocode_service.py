@@ -1,5 +1,6 @@
 #adresi kordinatlara çevirmek için kullanacağız.
-from utils.normalize import normalize_text
+from mapProject.utils.normalize import normalize_text
+
 
 def find_coordinates(client, raw_address: str):
 

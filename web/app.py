@@ -1,11 +1,13 @@
 import os
 import sys
-
-# ✅ Proje kökünü sys.path'e ekle (mapProject / data_science importları için)
+#  Proje kökünü sys.path'e ekle (mapProject / data_science importları için)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
+import json
+
+from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from openrouteservice import Client
 
@@ -18,7 +20,7 @@ from data_science.route_analysis import estimate_trip_from_map_payload
 
 app = Flask(__name__)
 
-# ✅ ORS KEY: önce ortam değişkeninden (önerilen), yoksa placeholder
+#  ORS KEY: önce ortam değişkeninden (önerilen), yoksa placeholder
 ORS_API_KEY = os.environ.get("ORS_API_KEY", "BURAYA_ORS_KEY").strip()
 
 if not ORS_API_KEY or ORS_API_KEY == "BURAYA_ORS_KEY":
@@ -152,7 +154,6 @@ def api_calculate():
             highway_ratio=highway_ratio
         )
     except Exception as e:
-        # ✅ daha açıklayıcı hata (dokunuş 2) - ilçeye göre yakıt fiyatı bulunamazsa vs.
         msg = str(e)
         if "İlçe" in msg or "ilçe" in msg or "district" in msg:
             msg = (
@@ -160,6 +161,17 @@ def api_calculate():
                 f"Gönderilen ilçe='{start_district}'."
             )
         return jsonify({"error": msg}), 400
+
+    # ✅ BURASI YENİ EKLENEN KISIM (result OLUŞTUKTAN SONRA)
+    try:
+        result_to_save = json.loads(json.dumps(result, ensure_ascii=False, default=str))
+        result_to_save["_saved_at"] = datetime.now().isoformat(timespec="seconds")
+
+        save_path = os.path.join(BASE_DIR, "result_data.json")
+        with open(save_path, "w", encoding="utf-8") as f:
+            json.dump(result_to_save, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"⚠ result_data.json kaydedilemedi: {e}")
 
     return jsonify(result)
 
