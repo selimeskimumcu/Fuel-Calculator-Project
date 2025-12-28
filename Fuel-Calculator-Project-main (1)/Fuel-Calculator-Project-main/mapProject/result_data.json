@@ -1,0 +1,28 @@
+{
+  "mixed_consumption": 7.827500000000001,
+  "fuel_used": 4.640689925,
+  "total_cost": 241.31587610000003,
+  "distance_km": 59.287,
+  "district": "ÇEKMEKÖY",
+  "fuel_type": "benzin",
+  "vehicle": {
+    "make": "AUDI",
+    "model": "A4",
+    "year": 2000
+  },
+  "ratios": {
+    "city_ratio": 0.1,
+    "highway_ratio": 0.9
+  },
+  "inputs": {
+    "city_consumption": 11.45,
+    "highway_consumption": 7.425,
+    "fuel_price": 52.0
+  },
+  "route_summary": {
+    "distance_km": 59.287,
+    "city_ratio": 0.1,
+    "highway_ratio": 0.9,
+    "start_district": "ÇEKMEKÖY"
+  }
+}

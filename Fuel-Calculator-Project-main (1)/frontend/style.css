@@ -1,0 +1,29 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.form {
+    width: 300px;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+}
+
+input, select, button {
+    width: 100%;
+    padding: 6px;
+    margin-top: 4px;
+}
+
+button {
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+#map {
+    height: 400px;
+    margin-top: 20px;
+}
