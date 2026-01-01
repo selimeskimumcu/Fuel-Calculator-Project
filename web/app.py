@@ -1,15 +1,15 @@
 import os
 import sys
-#  Proje kökünü sys.path'e ekle (mapProject / data_science importları için)
+import json
+import requests
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify, send_file
+from openrouteservice import Client
+
+# Proje kökünü sys.path'e ekle (mapProject / data_science importları için)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
-
-import json
-
-from datetime import datetime
-from flask import Flask, render_template, request, jsonify
-from openrouteservice import Client
 
 # mapProject servislerini kullan
 from mapProject.services.geocode_service import find_coordinates
@@ -20,24 +20,151 @@ from data_science.route_analysis import estimate_trip_from_map_payload
 
 app = Flask(__name__)
 
-#  ORS KEY: önce ortam değişkeninden (önerilen), yoksa placeholder
+# ORS KEY
 ORS_API_KEY = os.environ.get("ORS_API_KEY", "BURAYA_ORS_KEY").strip()
-
 if not ORS_API_KEY or ORS_API_KEY == "BURAYA_ORS_KEY":
-    # Uygulama yine açılır ama route endpointi çalışmayabilir.
-    # İstersen burada raise da edebilirsin.
     print("⚠ ORS_API_KEY ayarlı değil. PowerShell: $env:ORS_API_KEY='...'; python web/app.py")
 
 ors_client = Client(key=ORS_API_KEY)
 
 ALLOWED_FUEL_TYPES = {"benzin", "mazot", "lpg"}
 
+# JSON dosyalarının yazılacağı klasör: Fuel-Calculator-Project/mapProject/
+MAPPROJECT_DIR = os.path.join(BASE_DIR, "mapProject")
+ROUTE_JSON_PATH = os.path.join(MAPPROJECT_DIR, "route_data.json")
+RESULT_JSON_PATH = os.path.join(MAPPROJECT_DIR, "result_data.json")
 
-def district_from_start_address(start_address: str) -> str:
-    # "Çekmeköy, İstanbul, Türkiye" -> "ÇEKMEKÖY"
-    if not start_address:
+
+def save_json(path: str, data: dict):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def read_json(path: str):
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+# İstanbul ilçeleri: adres içinden güçlü yakalama için
+ISTANBUL_DISTRICTS = [
+    "ADALAR","ARNAVUTKÖY","ATAŞEHİR","AVCILAR","BAĞCILAR","BAHÇELİEVLER","BAKIRKÖY",
+    "BAŞAKŞEHİR","BAYRAMPAŞA","BEŞİKTAŞ","BEYKOZ","BEYLİKDÜZÜ","BEYOĞLU",
+    "BÜYÜKÇEKMECE","ÇATALCA","ÇEKMEKÖY","ESENLER","ESENYURT","EYÜPSULTAN",
+    "FATİH","GAZİOSMANPAŞA","GÜNGÖREN","KADIKÖY","KAĞITHANE","KARTAL",
+    "KÜÇÜKÇEKMECE","MALTEPE","PENDİK","SANCAKTEPE","SARIYER","SİLİVRİ",
+    "SULTANBEYLİ","SULTANGAZİ","ŞİLE","ŞİŞLİ","TUZLA","ÜMRANİYE","ÜSKÜDAR",
+    "ZEYTİNBURNU"
+]
+
+
+def district_from_address_strong(address: str) -> str:
+    """
+    Adres label içinde İstanbul ilçelerinden biri geçiyorsa onu döndürür.
+    Geçmiyorsa ilk virgül öncesini döndürmeyi dener.
+    """
+    if not address:
         return ""
-    return start_address.split(",")[0].strip().upper()
+    up = address.upper()
+
+    for d in ISTANBUL_DISTRICTS:
+        if d in up:
+            return d
+
+    # fallback: ilk parça
+    first = address.split(",")[0].strip().upper()
+    return first or ""
+
+
+def reverse_geocode_ors(client, coord):
+    """
+    ORS Pelias reverse -> (label, district_guess)
+    """
+    try:
+        resp = client.pelias_reverse(point={"lon": coord[0], "lat": coord[1]})
+        feats = resp.get("features") or []
+        if not feats:
+            return "", ""
+
+        props = feats[0].get("properties") or {}
+        label = (props.get("label") or "").strip()
+
+        district = (
+            props.get("borough")
+            or props.get("localadmin")
+            or props.get("county")
+            or props.get("locality")
+            or props.get("neighbourhood")
+            or ""
+        )
+        district = (district or "").strip().upper()
+
+        if not district and label:
+            district = district_from_address_strong(label)
+
+        return label, district
+    except Exception:
+        return "", ""
+
+
+def reverse_geocode_nominatim(coord):
+    """
+    Nominatim reverse -> (label, district_guess)
+    Nominatim User-Agent ister.
+    """
+    lon, lat = coord[0], coord[1]
+    url = "https://nominatim.openstreetmap.org/reverse"
+    params = {
+        "format": "jsonv2",
+        "lat": lat,
+        "lon": lon,
+        "zoom": 18,
+        "addressdetails": 1,
+        "accept-language": "tr",
+    }
+    headers = {"User-Agent": "FuelCalculatorProject/1.0 (local-dev)"}
+
+    try:
+        r = requests.get(url, params=params, headers=headers, timeout=10)
+        if r.status_code != 200:
+            return "", ""
+        j = r.json()
+
+        label = (j.get("display_name") or "").strip()
+        addr = j.get("address") or {}
+
+        district = (
+            addr.get("city_district")
+            or addr.get("district")
+            or addr.get("borough")
+            or addr.get("suburb")
+            or addr.get("county")
+            or addr.get("town")
+            or ""
+        )
+        district = (district or "").strip().upper()
+
+        if not district and label:
+            district = district_from_address_strong(label)
+
+        return label, district
+    except Exception:
+        return "", ""
+
+
+def reverse_geocode_best(ors_client, coord):
+    """
+    Önce ORS reverse, olmazsa Nominatim reverse.
+    """
+    label, district = reverse_geocode_ors(ors_client, coord)
+    if label or district:
+        return label, district
+    return reverse_geocode_nominatim(coord)
 
 
 @app.route("/")
@@ -45,10 +172,24 @@ def index():
     return render_template("index.html")
 
 
+# route_data.json ve result_data.json'ı HTTP ile servis et
+@app.get("/route_data.json")
+def serve_route_data():
+    if not os.path.exists(ROUTE_JSON_PATH):
+        return jsonify({"error": "route_data.json henüz oluşturulmadı"}), 404
+    return send_file(ROUTE_JSON_PATH, mimetype="application/json")
+
+
+@app.get("/result_data.json")
+def serve_result_data():
+    if not os.path.exists(RESULT_JSON_PATH):
+        return jsonify({"error": "result_data.json henüz oluşturulmadı"}), 404
+    return send_file(RESULT_JSON_PATH, mimetype="application/json")
+
+
 @app.route("/api/route", methods=["POST"])
 def api_route():
     """
-    İki kullanım:
     1) address ile: { "start_address": "...", "end_address": "..." }
     2) coord ile:   { "start_coord": [lon,lat], "end_coord": [lon,lat] }
     """
@@ -78,44 +219,66 @@ def api_route():
     if not route_data:
         return jsonify({"error": "Rota bulunamadı."}), 400
 
+    # ✅ KRİTİK FIX: start/end address + district'i garanti doldur (ORS -> Nominatim fallback)
+    start_label, start_dist = reverse_geocode_best(ors_client, start_coord)
+    end_label, end_dist = reverse_geocode_best(ors_client, end_coord)
+
+    # route_service bir şey döndürürse onu tercih et, değilse reverse geocode / input address
+    start_addr_final = (route_data.get("start_address") or start_address or start_label or "").strip()
+    end_addr_final = (route_data.get("end_address") or end_address or end_label or "").strip()
+
+    start_district_final = (start_dist or district_from_address_strong(start_addr_final) or "").strip().upper()
+    end_district_final = (end_dist or district_from_address_strong(end_addr_final) or "").strip().upper()
+
+    # route_data.json -> mapProject içine yaz
+    try:
+        to_save = {
+            "start_address": start_addr_final,
+            "end_address": end_addr_final,
+            "start_district": start_district_final,
+            "end_district": end_district_final,
+            "start_coord": start_coord,
+            "end_coord": end_coord,
+            "route_summery": route_data.get("route_summery"),
+            "route_geometry": route_data.get("route_geometry"),
+            "_saved_at": datetime.now().isoformat(timespec="seconds"),
+        }
+        save_json(ROUTE_JSON_PATH, to_save)
+        print("✅ route_data.json yazıldı ->", ROUTE_JSON_PATH)
+    except Exception as e:
+        print("⚠ route_data.json kaydedilemedi:", e)
+
     return jsonify({
         "start_coord": start_coord,
         "end_coord": end_coord,
         "route_summery": route_data.get("route_summery"),
         "route_geometry": route_data.get("route_geometry"),
-        # Harita ekibin yazdıysa: start_address da döndürmek iyi olur
-        "start_address": route_data.get("start_address"),
-        "end_address": route_data.get("end_address"),
+        "start_address": start_addr_final,
+        "end_address": end_addr_final,
+        "start_district": start_district_final,
+        "end_district": end_district_final,
     })
 
 
 @app.route("/api/calculate", methods=["POST"])
 def api_calculate():
-    """
-    Beklenen JSON:
-    {
-      "route_summery": {...},
-      "start_address": "Çekmeköy, İstanbul, Türkiye"  (veya start_district)
-      "vehicle": {"make":"ACURA","model":"1.6EL","year":2000},
-      "fuel_type": "benzin" | "mazot" | "lpg"
-    }
-    """
     data = request.get_json(force=True)
 
     summary = data.get("route_summery")
     vehicle = data.get("vehicle") or {}
     fuel_type = (data.get("fuel_type") or "benzin").strip().lower()
 
-    # ✅ fuel_type doğrulama (dokunuş 1)
     if fuel_type not in ALLOWED_FUEL_TYPES:
-        return jsonify({
-            "error": f"Geçersiz fuel_type: '{fuel_type}'. İzin verilenler: {', '.join(sorted(ALLOWED_FUEL_TYPES))}"
-        }), 400
+        return jsonify({"error": f"Geçersiz fuel_type: '{fuel_type}'. İzin verilenler: {', '.join(sorted(ALLOWED_FUEL_TYPES))}"}), 400
+
+    # route_summery yoksa son çare route_data.json'dan al
+    if not summary:
+        rd = read_json(ROUTE_JSON_PATH) or {}
+        summary = rd.get("route_summery")
 
     if not summary:
         return jsonify({"error": "route_summery zorunlu."}), 400
 
-    # route bilgileri
     distance_km = summary.get("total_distance_km")
     urban_percent = summary.get("urban_percent")
     interurban_percent = summary.get("interurban_percent")
@@ -126,14 +289,23 @@ def api_calculate():
     city_ratio = float(urban_percent) / 100.0
     highway_ratio = float(interurban_percent) / 100.0
 
-    # district: önce start_district, yoksa start_address'ten çıkar
+    # district: önce payload, sonra payload start_address, sonra route_data.json
     start_district = (data.get("start_district") or "").strip().upper()
-    if not start_district:
-        start_address = data.get("start_address", "")
-        start_district = district_from_start_address(start_address)
+    start_address = (data.get("start_address") or "").strip()
+
+    if not start_district and start_address:
+        start_district = district_from_address_strong(start_address)
 
     if not start_district:
-        return jsonify({"error": "start_district veya start_address gerekli."}), 400
+        rd = read_json(ROUTE_JSON_PATH) or {}
+        start_district = (rd.get("start_district") or "").strip().upper()
+        if not start_district:
+            start_address = start_address or (rd.get("start_address") or "").strip()
+            if start_address:
+                start_district = district_from_address_strong(start_address)
+
+    if not start_district:
+        return jsonify({"error": "start_district veya start_address gerekli (route_data.json içinde de yok)."}), 400
 
     make = (vehicle.get("make") or "").strip()
     model = (vehicle.get("model") or "").strip()
@@ -142,7 +314,6 @@ def api_calculate():
     if not make or not model or year is None or str(year).strip() == "":
         return jsonify({"error": "vehicle(make, model, year) eksik."}), 400
 
-    # DataScience hesap
     try:
         result = estimate_trip_from_map_payload(
             map_payload={"distance_km": float(distance_km), "start": {"district": start_district}},
@@ -162,14 +333,15 @@ def api_calculate():
             )
         return jsonify({"error": msg}), 400
 
-    # ✅ BURASI YENİ EKLENEN KISIM (result OLUŞTUKTAN SONRA)
+    # result_data.json -> mapProject içine yaz
     try:
         result_to_save = json.loads(json.dumps(result, ensure_ascii=False, default=str))
         result_to_save["_saved_at"] = datetime.now().isoformat(timespec="seconds")
 
-        save_path = os.path.join(BASE_DIR, "result_data.json")
-        with open(save_path, "w", encoding="utf-8") as f:
+        with open(RESULT_JSON_PATH, "w", encoding="utf-8") as f:
             json.dump(result_to_save, f, ensure_ascii=False, indent=2)
+
+        print("✅ result_data.json yazıldı ->", RESULT_JSON_PATH)
     except Exception as e:
         print(f"⚠ result_data.json kaydedilemedi: {e}")
 

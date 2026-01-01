@@ -1,28 +1,28 @@
 {
-  "mixed_consumption": 11.754,
-  "fuel_used": 2.20869414,
-  "total_cost": 115.2496602252,
-  "distance_km": 18.791,
-  "district": "FATIH",
+  "mixed_consumption": 12.26205,
+  "fuel_used": 2.3159333835,
+  "total_cost": 120.84540395103,
+  "distance_km": 18.887,
+  "district": "BAKIRKOY",
   "fuel_type": "benzin",
   "vehicle": {
-    "make": "TOYOTA",
-    "model": "COROLLA",
-    "year": 2010
+    "make": "ACURA",
+    "model": "1.6EL",
+    "year": 2000
   },
   "ratios": {
     "city_ratio": 0.9,
     "highway_ratio": 0.09999999999999998
   },
   "inputs": {
-    "city_consumption_raw": 8.5,
-    "highway_consumption_raw": 6.125,
-    "city_consumption_adjusted": 12.325,
-    "highway_consumption_adjusted": 6.615,
+    "city_consumption_raw": 8.85,
+    "highway_consumption_raw": 6.6,
+    "city_consumption_adjusted": 12.8325,
+    "highway_consumption_adjusted": 7.128,
     "fuel_price": 52.18,
     "force_city_ratio": 0.9,
     "traffic_multiplier_city": 1.45,
     "traffic_multiplier_highway": 1.08
   },
-  "_saved_at": "2025-12-28T18:44:56"
+  "_saved_at": "2026-01-01T21:28:40"
 }

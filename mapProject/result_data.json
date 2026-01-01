@@ -1,28 +1,28 @@
 {
-  "mixed_consumption": 7.827500000000001,
-  "fuel_used": 4.640689925,
-  "total_cost": 241.31587610000003,
-  "distance_km": 59.287,
-  "district": "ÇEKMEKÖY",
+  "mixed_consumption": 12.3165,
+  "fuel_used": 2.0051262,
+  "total_cost": 104.62748511599999,
+  "distance_km": 16.28,
+  "district": "ÇAĞLAYAN MAHALLESI",
   "fuel_type": "benzin",
   "vehicle": {
     "make": "AUDI",
     "model": "A4",
-    "year": 2000
+    "year": 2010
   },
   "ratios": {
-    "city_ratio": 0.1,
-    "highway_ratio": 0.9
+    "city_ratio": 0.9,
+    "highway_ratio": 0.09999999999999998
   },
   "inputs": {
-    "city_consumption": 11.45,
-    "highway_consumption": 7.425,
-    "fuel_price": 52.0
+    "city_consumption_raw": 8.9,
+    "highway_consumption_raw": 6.5,
+    "city_consumption_adjusted": 12.905,
+    "highway_consumption_adjusted": 7.0200000000000005,
+    "fuel_price": 52.18,
+    "force_city_ratio": 0.9,
+    "traffic_multiplier_city": 1.45,
+    "traffic_multiplier_highway": 1.08
   },
-  "route_summary": {
-    "distance_km": 59.287,
-    "city_ratio": 0.1,
-    "highway_ratio": 0.9,
-    "start_district": "ÇEKMEKÖY"
-  }
+  "_saved_at": "2026-01-01T23:51:55"
 }
