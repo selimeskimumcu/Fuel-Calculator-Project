@@ -1,9 +1,16 @@
 {
   "mixed_consumption": 12.3165,
+<<<<<<< HEAD
   "fuel_used": 2.0051262,
   "total_cost": 104.62748511599999,
   "distance_km": 16.28,
   "district": "ÇAĞLAYAN MAHALLESI",
+=======
+  "fuel_used": 1.66494447,
+  "total_cost": 86.8768024446,
+  "distance_km": 13.518,
+  "district": "İSKENDERPAŞA MAHALLESI",
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
   "fuel_type": "benzin",
   "vehicle": {
     "make": "AUDI",
@@ -24,5 +31,9 @@
     "traffic_multiplier_city": 1.45,
     "traffic_multiplier_highway": 1.08
   },
+<<<<<<< HEAD
   "_saved_at": "2026-01-01T23:51:55"
+=======
+  "_saved_at": "2026-01-03T20:14:34"
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
 }

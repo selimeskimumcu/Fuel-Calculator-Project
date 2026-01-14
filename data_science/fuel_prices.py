@@ -11,6 +11,10 @@ PO_ISTANBUL_URL = "https://akaryakit-fiyatlari.vercel.app/api/po/34"
 
 def _norm_tr(s):
     s = (s or "").strip().upper()
+<<<<<<< HEAD
+=======
+    # Türkçe karakter normalize (İ/ı vs.)
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     s = s.replace("İ", "I").replace("İ", "I")
     s = s.replace("Ş", "S").replace("Ğ", "G").replace("Ü", "U").replace("Ö", "O").replace("Ç", "C")
     return s
@@ -22,7 +26,11 @@ def fetch_istanbul_prices_po():
 
 def get_fuel_price_istanbul_by_district(district, fuel_type="benzin"):
     """
+<<<<<<< HEAD
     district: 'FATIH', 'KADIKOY'
+=======
+    district: 'FATIH', 'KADIKOY' gibi
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     fuel_type: 'benzin' | 'mazot' | 'lpg'
     """
     data = fetch_istanbul_prices_po()
@@ -36,7 +44,11 @@ def get_fuel_price_istanbul_by_district(district, fuel_type="benzin"):
                 raise ValueError(f"Yakıt türü bulunamadı: {fuel_type}")
             return float(price)
 
+<<<<<<< HEAD
     #  fallback
+=======
+    # İlçe bulunamazsa genel fallback
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     for fallback in ("ISTANBUL (AVRUPA)", "ISTANBUL (ANADOLU)"):
         for item in data.get("fiyatlar", []):
             if _norm_tr(item.get("ilce", "")) == _norm_tr(fallback):

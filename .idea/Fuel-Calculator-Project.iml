@@ -2,7 +2,11 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
+<<<<<<< HEAD
     <orderEntry type="jdk" jdkName="Python 3.13" jdkType="Python SDK" />
+=======
+    <orderEntry type="jdk" jdkName="Python 3.11" jdkType="Python SDK" />
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">

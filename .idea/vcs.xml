@@ -2,6 +2,10 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+<<<<<<< HEAD
+=======
+    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
   </component>
 </project>

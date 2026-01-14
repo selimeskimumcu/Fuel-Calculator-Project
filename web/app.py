@@ -6,21 +6,37 @@ from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_file
 from openrouteservice import Client
 
+<<<<<<< HEAD
 # Proje kökünü sys.path'e ekle (mapProject / data_science importları için)
+=======
+# proje kökünü sys.pathe ekledim sebebi mapproject ve data_science importları için
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
+<<<<<<< HEAD
 # mapProject servislerini kullan
 from mapProject.services.geocode_service import find_coordinates
 from mapProject.services.route_service import get_route
 
 # data science hesap
+=======
+# mapproject servislerini kullandım
+from mapProject.services.geocode_service import find_coordinates
+from mapProject.services.route_service import get_route
+
+# data science hesaplaması
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
 from data_science.route_analysis import estimate_trip_from_map_payload
 
 app = Flask(__name__)
 
+<<<<<<< HEAD
 # ORS KEY
+=======
+# bu kısım ors key tarafı o keyi backhendden alacaz
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
 ORS_API_KEY = os.environ.get("ORS_API_KEY", "BURAYA_ORS_KEY").strip()
 if not ORS_API_KEY or ORS_API_KEY == "BURAYA_ORS_KEY":
     print("⚠ ORS_API_KEY ayarlı değil. PowerShell: $env:ORS_API_KEY='...'; python web/app.py")
@@ -29,7 +45,11 @@ ors_client = Client(key=ORS_API_KEY)
 
 ALLOWED_FUEL_TYPES = {"benzin", "mazot", "lpg"}
 
+<<<<<<< HEAD
 # JSON dosyalarının yazılacağı klasör: Fuel-Calculator-Project/mapProject/
+=======
+#  json dosyalarının yazıalacağı klasör (proje adı fuel-calculator-project/mapproject/
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
 MAPPROJECT_DIR = os.path.join(BASE_DIR, "mapProject")
 ROUTE_JSON_PATH = os.path.join(MAPPROJECT_DIR, "route_data.json")
 RESULT_JSON_PATH = os.path.join(MAPPROJECT_DIR, "result_data.json")
@@ -51,7 +71,11 @@ def read_json(path: str):
         return None
 
 
+<<<<<<< HEAD
 # İstanbul ilçeleri: adres içinden güçlü yakalama için
+=======
+# istanbulun ilçeleri
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
 ISTANBUL_DISTRICTS = [
     "ADALAR","ARNAVUTKÖY","ATAŞEHİR","AVCILAR","BAĞCILAR","BAHÇELİEVLER","BAKIRKÖY",
     "BAŞAKŞEHİR","BAYRAMPAŞA","BEŞİKTAŞ","BEYKOZ","BEYLİKDÜZÜ","BEYOĞLU",
@@ -65,8 +89,13 @@ ISTANBUL_DISTRICTS = [
 
 def district_from_address_strong(address: str) -> str:
     """
+<<<<<<< HEAD
     Adres label içinde İstanbul ilçelerinden biri geçiyorsa onu döndürür.
     Geçmiyorsa ilk virgül öncesini döndürmeyi dener.
+=======
+     adres labelin içinde eğer istanbulun ilçerlerinden biri geçerse onu döndüdrüyor.
+    geçmezse ilk virgül öncesini döndürmeyi deniyor
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     """
     if not address:
         return ""
@@ -76,14 +105,24 @@ def district_from_address_strong(address: str) -> str:
         if d in up:
             return d
 
+<<<<<<< HEAD
     # fallback: ilk parça
+=======
+    # fallback burası ilk parçamız
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     first = address.split(",")[0].strip().upper()
     return first or ""
 
 
 def reverse_geocode_ors(client, coord):
     """
+<<<<<<< HEAD
     ORS Pelias reverse -> (label, district_guess)
+=======
+    bu kısımda ors pelias reverse geocoding kullanılarak koordinatlardan okunabilir adres ve ilçe bilgisi üretiliyo
+    label( koordinatların karşılığı olan insan tarafından okunabilir bir adres bilgisi bunu unutma)(ekranda anlamlı bir adres olarak göstermek) (label)
+    district_guess( aynı reverse geocoding çıktısından ilçe biligisinin tahmin edilmesi)(yakıt fiyatı ve hesaplamalarda kullanılmak üzere ilçe bilgisini otomatik tahmin etmek)(district_guess)
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     """
     try:
         resp = client.pelias_reverse(point={"lon": coord[0], "lat": coord[1]})
@@ -114,8 +153,17 @@ def reverse_geocode_ors(client, coord):
 
 def reverse_geocode_nominatim(coord):
     """
+<<<<<<< HEAD
     Nominatim reverse -> (label, district_guess)
     Nominatim User-Agent ister.
+=======
+    reverse geocode haritadan seçilen koordinatların adres ve ilçe gibi anlamlı bilgilere dönüştürlümesidir!!!
+    Nominatim reverse -> (label, district_guess)
+    Nominatim User-Agent ister.
+    bu bölümde openstreetmapin nominatim servisiyle reverse geocodding yapılıyor.
+    servisin çalışabilmesi için http isteğinde user agent bilgisi gönderilmesi zorunlu (BUNU UNUTMA)
+    burasının önemli olmasının sebebi(user agent gönderilmezse nominatim istediiği cevabı alamaz, uygulama adres içlçe bilgisinide alamaz.)
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     """
     lon, lat = coord[0], coord[1]
     url = "https://nominatim.openstreetmap.org/reverse"
@@ -159,7 +207,12 @@ def reverse_geocode_nominatim(coord):
 
 def reverse_geocode_best(ors_client, coord):
     """
+<<<<<<< HEAD
     Önce ORS reverse, olmazsa Nominatim reverse.
+=======
+    Önce ORS reverse, olmazsa Nominatim reverse.(adres bilgisini almak için önce orsreverse geocdoing kullanılır,
+    eğer başarısız olursa yedek olara k nominatimreverse geocoda geçiliyo)
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     """
     label, district = reverse_geocode_ors(ors_client, coord)
     if label or district:
@@ -172,7 +225,11 @@ def index():
     return render_template("index.html")
 
 
+<<<<<<< HEAD
 # route_data.json ve result_data.json'ı HTTP ile servis et
+=======
+# route_data.json ve result_data.json'ı HTTP ile servis et yani dosyayı diskte tut sonra http üzerinden okunur yap
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
 @app.get("/route_data.json")
 def serve_route_data():
     if not os.path.exists(ROUTE_JSON_PATH):
@@ -190,8 +247,13 @@ def serve_result_data():
 @app.route("/api/route", methods=["POST"])
 def api_route():
     """
+<<<<<<< HEAD
     1) address ile: { "start_address": "...", "end_address": "..." }
     2) coord ile:   { "start_coord": [lon,lat], "end_coord": [lon,lat] }
+=======
+    1)kullanıcı adres girerse  backend bu adresleri önce geocod ile çözer sonra bu koordinatlar üzerinden rota hesapşar
+    2) coordinant girerse kordinatlar doğrudan kullanılır ekstra olarak geocod adımı gerekmiyo daha hızlı olur yani
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     """
     data = request.get_json(force=True)
 
@@ -219,18 +281,30 @@ def api_route():
     if not route_data:
         return jsonify({"error": "Rota bulunamadı."}), 400
 
+<<<<<<< HEAD
     # ✅ KRİTİK FIX: start/end address + district'i garanti doldur (ORS -> Nominatim fallback)
     start_label, start_dist = reverse_geocode_best(ors_client, start_coord)
     end_label, end_dist = reverse_geocode_best(ors_client, end_coord)
 
     # route_service bir şey döndürürse onu tercih et, değilse reverse geocode / input address
+=======
+    # bu düzeltme ors başarırısz olsa bile nominatim yedeği sayesinde başlangıç-bitiş adresi ve ilçe bilgilerini her zaman doldurmasını garanti ediyo.
+    start_label, start_dist = reverse_geocode_best(ors_client, start_coord)
+    end_label, end_dist = reverse_geocode_best(ors_client, end_coord)
+
+    #  adres bilgisi için önce route servisinin sonucu tercih ediliyo eğer başarısız olursa reverse geocoding veya kullanıcın girdiği adres kullanıyo
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     start_addr_final = (route_data.get("start_address") or start_address or start_label or "").strip()
     end_addr_final = (route_data.get("end_address") or end_address or end_label or "").strip()
 
     start_district_final = (start_dist or district_from_address_strong(start_addr_final) or "").strip().upper()
     end_district_final = (end_dist or district_from_address_strong(end_addr_final) or "").strip().upper()
 
+<<<<<<< HEAD
     # route_data.json -> mapProject içine yaz
+=======
+    # route_data.json > mapproject içine yaz
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     try:
         to_save = {
             "start_address": start_addr_final,
@@ -289,7 +363,11 @@ def api_calculate():
     city_ratio = float(urban_percent) / 100.0
     highway_ratio = float(interurban_percent) / 100.0
 
+<<<<<<< HEAD
     # district: önce payload, sonra payload start_address, sonra route_data.json
+=======
+    # ilçe bilgisi öncelikle frontend payloadından alınıyor eğer yoksa adresten çıkarılıyor eğer o da yoksa daha önce üretilmiş route verisi kullanıluyo
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     start_district = (data.get("start_district") or "").strip().upper()
     start_address = (data.get("start_address") or "").strip()
 

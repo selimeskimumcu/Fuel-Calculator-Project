@@ -26,6 +26,7 @@ def estimate_trip_from_map_payload(
     model,
     year,
     fuel_type="benzin",
+<<<<<<< HEAD
 
     city_ratio=0.6,
     highway_ratio=0.4,
@@ -37,13 +38,41 @@ def estimate_trip_from_map_payload(
 ):
 
     # fuel_type verification
+=======
+    # Not: city_ratio/highway_ratio parametrelerini alıyoruz ama
+    # aşağıda “force_city_ratio” ile sabitleyebiliyoruz.
+    city_ratio=0.6,
+    highway_ratio=0.4,
+    # ✅ İSTENEN DAVRANIŞ: rota ne olursa olsun şehir içi %90
+    force_city_ratio=0.90,
+    # İstanbul trafik gerçekliği (istersen daha da arttırırsın)
+    traffic_multiplier_city=1.45,
+    traffic_multiplier_highway=1.08
+):
+    """
+    map_payload beklenen format:
+      {
+        "distance_km": 59.287,
+        "start": {"district": "CEKMEKOY"}
+      }
+
+    Araç tüketimi CSV'den alınır, yakıt fiyatı İstanbul ilçe bazlı API'den alınır,
+    ardından fuel_calculator ile sonuç hesaplanır.
+    """
+
+    # 0) fuel_type doğrulama
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     fuel_type = (fuel_type or "benzin").strip().lower()
     if fuel_type not in ALLOWED_FUEL_TYPES:
         raise ValueError(
             f"Geçersiz fuel_type: '{fuel_type}'. İzin verilenler: {', '.join(sorted(ALLOWED_FUEL_TYPES))}"
         )
 
+<<<<<<< HEAD
     # Distance
+=======
+    # 1) Mesafe
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     if not isinstance(map_payload, dict):
         raise ValueError("map_payload dict olmalı.")
     if "distance_km" not in map_payload:
@@ -53,6 +82,7 @@ def estimate_trip_from_map_payload(
     if distance_km <= 0:
         raise ValueError("distance_km 0'dan büyük olmalı.")
 
+<<<<<<< HEAD
     # District
     start = map_payload.get("start") or {}
     district = start.get("district")
@@ -61,12 +91,27 @@ def estimate_trip_from_map_payload(
     district = str(district).strip().upper()
 
     # Odds
+=======
+    # 2) İlçe
+    start = map_payload.get("start") or {}
+    district = start.get("district")
+    if not district:
+        raise ValueError("map_payload.start.district yok. (Örn: FATIH / KADIKOY / CEKMEKOY)")
+    district = str(district).strip().upper()
+
+    # 3) Oranlar
+    # ✅ Kullanıcı isteği: rota ne olursa olsun şehir içi %90, şehir dışı %10
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     if force_city_ratio is not None:
         city_ratio = float(force_city_ratio)
         if not (0.0 <= city_ratio <= 1.0):
             raise ValueError("force_city_ratio 0 ile 1 arasında olmalı. Örn: 0.90")
         highway_ratio = 1.0 - city_ratio
     else:
+<<<<<<< HEAD
+=======
+        # Eğer ileride “force” kapatılırsa, oranları normalize ederek kullan
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
         city_ratio = float(city_ratio)
         highway_ratio = float(highway_ratio)
         total = city_ratio + highway_ratio
@@ -75,18 +120,30 @@ def estimate_trip_from_map_payload(
         city_ratio /= total
         highway_ratio /= total
 
+<<<<<<< HEAD
     # Vehicle (CSV)
+=======
+    # 4) Araç tüketimi (CSV)
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     city_c, highway_c = find_vehicle_consumption(make, model, year)
     if city_c is None or highway_c is None:
         raise ValueError(
             f"Araç tüketim verisi bulunamadı: MAKE={make}, MODEL={model}, YEAR={year}"
         )
 
+<<<<<<< HEAD
     # Designing Traffic
     city_c_adj = float(city_c) * float(traffic_multiplier_city)
     highway_c_adj = float(highway_c) * float(traffic_multiplier_highway)
 
     # Fuel Price (District of Istanbul)
+=======
+    # 5) Trafik düzeltmesi (İstanbul gerçekliği)
+    city_c_adj = float(city_c) * float(traffic_multiplier_city)
+    highway_c_adj = float(highway_c) * float(traffic_multiplier_highway)
+
+    # 6) Yakıt fiyatı (İstanbul ilçe bazlı)
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     try:
         fuel_price = get_fuel_price_istanbul_by_district(district, fuel_type=fuel_type)
     except Exception as e:
@@ -95,7 +152,11 @@ def estimate_trip_from_map_payload(
             "Başlangıç noktasının İstanbul ilçesi olduğundan emin ol."
         ) from e
 
+<<<<<<< HEAD
     # Calculate
+=======
+    # 7) Hesap
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     result = calculate_trip_cost_with_mixed_consumption(
         distance_km=distance_km,
         city_ratio=city_ratio,
@@ -105,7 +166,11 @@ def estimate_trip_from_map_payload(
         fuel_price=fuel_price
     )
 
+<<<<<<< HEAD
     # Frontend
+=======
+    # 8) Frontend için ek meta
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     result.update({
         "distance_km": distance_km,
         "district": district,

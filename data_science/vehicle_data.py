@@ -27,11 +27,21 @@ def _to_float(x):
 
 def find_vehicle_consumption(make, model, year=None, csv_path=DATA_PATH):
     """
+<<<<<<< HEAD
     It finds vehicle fuel consumption values from a CSV file.
     If there are multiple rows for the same MAKE+MODEL+YEAR, it takes the AVERAGE.
     Return:
         (avg_city, avg_highway)
       If it can't find anything: (None, None)
+=======
+    CSV'den araç tüketim değerlerini bulur.
+    Aynı MAKE+MODEL+YEAR için birden fazla satır varsa ORTALAMA alır.
+
+    Dönüş:
+      (avg_city, avg_highway)
+    Bulamazsa:
+      (None, None)
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
     """
 
     make_n = _norm(make)
@@ -56,13 +66,21 @@ def find_vehicle_consumption(make, model, year=None, csv_path=DATA_PATH):
             highway = _to_float(row.get("HWY (L/100 km)"))     # şehir dışı
             combined = _to_float(row.get("COMB (L/100 km)"))   # karma
 
+<<<<<<< HEAD
             # Priority: Add city+highway if available
+=======
+            # Öncelik: city+highway varsa ekle
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
             if city is not None and highway is not None:
                 city_values.append(city)
                 highway_values.append(highway)
                 continue
 
+<<<<<<< HEAD
             # Fallback: If combined, use this instead of city/highway
+=======
+            # Fallback: combined varsa city/highway yerine bunu kullan
+>>>>>>> b345ac7 (Streamlit frontend implementation and route-based fuel calculation)
             if combined is not None:
                 city_values.append(combined)
                 highway_values.append(combined)
